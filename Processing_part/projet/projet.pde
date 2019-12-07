@@ -1,38 +1,69 @@
+import processing.net.*;
+
+Client c;
+
+boolean hasInitaled=false;
+
+String input;
+int data[];
+
 int height = 800;
 int width = 800;
 int sizeSquare = 40;
+
+Player player;
+
 int mapSize = height/sizeSquare;
 int[][] myMap = new int[mapSize][mapSize];
-float startPointX = 0;
-float startPointY = 0;
-int playerDirX = 0;
-int playerDirY = 0;
-float playerX = sizeSquare *1.5;;
-float playerY = sizeSquare *1.5;;
-int sizePlayer =10;
-float playerLastX = 0;
-float playerLastY = 0;
+
 int wallweight = 4;
 float moveSpeed = 4;
+
+//player1's image
+String url = "https://gss0.baidu.com/-vo3dSag_xI4khGko9WTAnF6hhy/zhidao/pic/item/0e2442a7d933c89584b13984d01373f083020005.jpg";
+
+
 void setup()
 {
     size(800,800);
     
-    initMap();
-    startPointX = sizeSquare *1.5;
-    startPointY = sizeSquare *1.5;
+    c = new Client(this, "127.0.0.1", 12345); // Replace with your server's IP and port
+    
+    
+    //initMap();
+
+    player=new Player(sizeSquare,url,sizeSquare *1.5,sizeSquare *1.5);
+
     //player start point
     myMap[1][1] = 0;
-    ellipse(startPointX, startPointX, sizePlayer, sizePlayer);
+    
+    player.render();
 }
 
 void draw()
 {
   //rect(float(0), float(0), sizeSquare,sizeSquare);
     clear();
-    background(255);
+    background(255); //<>//
+    
+    
+    if (c.available() > 0&& !hasInitaled) {
+      input = c.readString();
+      input = input.substring(0, input.indexOf("\n")); // Only up to the newline
+      data = int(split(input, ' ')); // Split values into an array
+      for(int i = 0; i < mapSize; ++i)
+      {
+        for(int j = 0; j < mapSize; ++j)
+        {
+          myMap[i][j] = data[i*mapSize+j];
+        }
+      }
+      hasInitaled=true;
+    }
+    
+    
     drawMap();
-    moveMentPlayer();
+    player.moveMentPlayer();
 }
 
 void drawMap()
@@ -77,16 +108,16 @@ void keyPressed()
 {
   if (key == CODED) {
     if (keyCode == UP) {
-        playerDirY = -1;
+        player.playerDirY = -1;
     } 
     else if (keyCode == DOWN) {
-       playerDirY = 1;
+       player.playerDirY = 1;
     } 
     else if (keyCode == LEFT) {
-       playerDirX = -1;
+       player.playerDirX = -1;
     } 
     else if (keyCode == RIGHT) {
-       playerDirX = 1;
+       player.playerDirX = 1;
     } 
   } 
   
@@ -96,37 +127,17 @@ void keyReleased()
 {
   if (key == CODED) {
     if (keyCode == UP) {
-       playerDirY = 0;
+       player.playerDirY = 0;
     } 
     else if (keyCode == DOWN) {
-       playerDirY = 0;
+       player.playerDirY = 0;
     } 
     else if (keyCode == LEFT) {
-       playerDirX = 0;
+       player.playerDirX = 0;
     } 
     else if (keyCode == RIGHT) {
-       playerDirX = 0;
+       player.playerDirX = 0;
     } 
   } 
   
-}
-
-void moveMentPlayer()
-{
-  
-  playerX += playerDirX*moveSpeed;
-  playerY += playerDirY*moveSpeed;
-  
-  //calculate for the map index
-  int i = int(playerX+playerDirX*sizePlayer/2)/sizeSquare;
-  int j = int(playerY+playerDirY*sizePlayer/2)/sizeSquare;
-  //collider test
-  if(myMap[i][j] != 0 )
-    {
-      playerX = playerLastX;
-      playerY = playerLastY;
-    }
-  ellipse(playerX, playerY, sizePlayer, sizePlayer);
-  playerLastX = playerX;
-  playerLastY = playerY; 
 }
